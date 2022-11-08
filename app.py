@@ -1,15 +1,15 @@
 from pyrebase import pyrebase
-import os
-import html
+from firebase_admin import storage as admin_storage, credentials
+from openpyxl import load_workbook
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+import requests.exceptions
 import pandas as pd #panda.excelfiles.parse
 import firebase_admin 
-from firebase_admin import storage as admin_storage, credentials, firestore
-from openpyxl import load_workbook, Workbook
-from flask import Flask, render_template, request, redirect, send_file, send_from_directory, url_for
+from firebase_admin import auth
 
 # Your credentials after create a app web project.
 config = {
-  "apiKey": "AIzaSyAYULJooDufFubZ-CKBdM03aOgHOZj7og",
+  "apiKey": "AIzaSyAYULJoAoDufFubZ-CKBdM03aOgHOZj7og",
   "authDomain": "data-brokers-f0705.firebaseapp.com",
   "databaseURL": "https://data-brokers-f0705-default-rtdb.firebaseio.com",
   "projectId": "data-brokers-f0705",
@@ -24,13 +24,61 @@ cred = credentials.Certificate("service_account.json")
 admin = firebase_admin.initialize_app(cred, {"storageBucket": "data-brokers-f0705.appspot.com"})
 bucket = admin_storage.bucket()
 firebase_storage = pyrebase.initialize_app(config)
+auth = firebase_storage.auth()
 storage = firebase_storage.storage()
 
+
 app = Flask(__name__)
+app.secret_key = 'secret'
+
+#Start route, login
 @app.route('/', methods=['GET', 'POST'])
+def login():
+    #if('user' in session):
+    #    return 'Hi, {}' .format(session['user'])
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        try:
+            user = auth.sign_in_with_email_and_password(email, password)
+            session['user'] = email
+            
+            if('user' in session):
+                return redirect(url_for('home'))
+            else:
+                return "Failed to create session"
+        except:
+            return render_template('login.html')
+
+    return render_template('login.html')
+
+#Logout route
+@app.route('/logout', methods=['GET', 'POST'])
+def logout():
+    return render_template("logout.html")
+
+#Account creation route
+@app.route('/createAccount', methods=['GET', 'POST'])
+def createAccount():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        try:
+            auth.create_user_with_email_and_password(email, password)
+            flash("User Created")
+        except:
+            return 'User already exists'
+        return redirect(url_for('login'))
+    return render_template('createAccount.html')
+
+#home route
+@app.route('/home', methods=['GET', 'POST'])
 def home():
+    if request.method == 'POST':
+        return redirect(url_for('logout'))
     return render_template('home.html')
 
+#upload route
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
@@ -40,6 +88,7 @@ def upload():
         return redirect(url_for('home'))
     return render_template('upload.html')
 
+#Modify excel route pandas
 @app.route('/modifyTest', methods=['GET', 'POST'])
 def modifyTest():
     if request.method == 'POST':
@@ -47,8 +96,6 @@ def modifyTest():
         path = "https://www.gs://data-brokers-f0705.appspot.com"
         excelTest = request.form.get('excelTest')
         url = storage.child(excelTest).get_url(None)
-        file = storage.child(excelTest).download(path, filename=excelTest)
-        print(excelTest)
         excel = pd.read_excel(url)
 
         sheet_name = request.form['sheet_name']
@@ -67,19 +114,18 @@ def modifyTest():
         excel.to_excel(writer, sheet_name=sheet_name, index=False)
 
         # Close the Pandas Excel writer and output the Excel file.
-        writer.close(path)
+        writer.close()
 
         #writer = pd.ExcelWriter(url, engine='xlsxwriter')
         #excel.to_excel(url, sheet_name='Sheet1')
-        print(type(excel))
-        print("this is before error")
 
         storage.child(excelTest).put(excelTest)
-        return 'Success'
+        return render_template('modifyTest.html')
         #except:
             #return redirect(url_for('home'))
     return render_template("modifyTest.html")
 
+# Modify Excel openpyxl route
 @app.route('/modify_Excel', methods=['GET', 'POST'])
 def modify():
     if request.method == 'POST':
@@ -90,15 +136,16 @@ def modify():
         row_name = request.form['row_name']
         new_val = request.form['new_value']
 
-        wb = load_workbook(excel.filename)
+        wb = load_workbook(excel)
         ws = wb[sheet_name]
         cell = col_name + row_name
         ws[cell] = new_val
         wb.save(excel.filename)
-        storage.child(excel.filename).put(excel.filename)
+        storage.child(excel.filename).put(excel)
         return redirect(url_for('home'))
     return render_template('modify_excel.html')
 
+#Retreive route
 @app.route('/retrieve', methods=['GET', 'POST'])
 def retrieve():
     if request.method == 'POST':
@@ -107,6 +154,7 @@ def retrieve():
             url = storage.child(retrieve).get_url(None)
             words = retrieve.split(".")
             ext = words[1]
+            ext = ext.lower()
             
             #add additional conidtions for other extensions
             if ext == ('png') or ext == ('jpg'):
@@ -122,8 +170,15 @@ def retrieve():
                 return render_template("download.html", url = url)
         except:
             return render_template('fileError.html')
-    return render_template('retrieve.html')
 
+    all_files = storage.list_files()
+    name = []
+
+    for file in all_files:
+        name.append(file.name)
+    return render_template('retrieve.html', name=name)
+
+#Delete route
 @app.route('/delete', methods=['GET', 'POST'])
 def delete():
     if request.method == 'POST':
@@ -133,7 +188,13 @@ def delete():
             blob.delete()
         except:
             return render_template('fileError.html')
-    return render_template('delete.html')
+            
+    all_files = storage.list_files()
+    name = []
+
+    for file in all_files:
+        name.append(file.name)
+    return render_template('delete.html', name=name)
 
 if __name__ == '__main__':
     app.run(debug=True)
