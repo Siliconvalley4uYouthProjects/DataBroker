@@ -1,12 +1,28 @@
-<!doctype html>
+<!DOCTYPE html>
+<html lang="en">
 <body>
     <nav id="nav">
         <a href="{{ url_for('home') }}">Home</a>
     </nav>
-    </form>
-    <h1>Retrieve File</h1>
+        <h1>Retrieve File: </h1>
     <form method="POST" action="" enctype="multipart/form-data">
-    <input type="text" name="retrieve" id="retrieve" placeholder = "file name" >
-    <button type="submit" id="submit_button"> Submit</button>
-    </form>
+        <select id ='selectvalue' name="retrieve"></select>
+        <p>&nbsp;</p> 
+        <button type="submit" id="submit_button">Submit</button>
+    </form>
+<script>
+    var selectvalue = document.getElementById("selectvalue"), test = {{ name | tojson }};
+    for(var i = 0; i < test.length; i++)  {
+        
+        var selection = document.createElement("OPTION"), // This line creates a variable to store the different values fed in from the JSON object "TEST"
+        txt = document.createTextNode(test[i]); // This just reads each value from the test JSON variable above
+        selection.appendChild(txt); // This line appends each value as it is read.
+        selection.setAttribute("value",test[i]); // This line sets each value read in as a value for the drop down
+        selectvalue.insertBefore(selection,selectvalue.lastChild); //This reads eah value into the dropdown based on the order in the "TEST" above.
+    }
+</script>
 </body>
+</html>
+
+
+
