@@ -1,12 +1,31 @@
 <!doctype html>
 <body>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+    * {box-sizing: border-box;}
+    
+    body {
+      margin: 0;
+    }
+      .imageDown {
+              background-color: lightblue;
+              color: black;
+              border: 2px solid black;
+              margin: 20px;
+              padding: 20px;
+            }
+    
+    </style>
+    <div class="imageDown">
     <nav id="nav">
         <a href="{{ url_for('home') }}">Home</a>
     </nav>
-    <p>&nbsp;</p> 
-    <p></p>
+    <h2 class="text-center mt-4 mb-4">Image Download</h2>
     <img src="{{ url }}" style="max-width:300px;width:100%" alt=" Download ">
     <a href = "{{ url }}">
+        <br>
+        <br>
         <input type="submit" value="Download">
     </a>
+</div>
 </body>

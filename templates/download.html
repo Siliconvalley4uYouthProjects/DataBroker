@@ -1,11 +1,28 @@
 <!doctype html>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+* {box-sizing: border-box;}
+
+body {
+  margin: 0;
+}
+  .download {
+          background-color: lightblue;
+          color: black;
+          border: 2px solid black;
+          margin: 20px;
+          padding: 20px;
+        }
+
+</style>
 <body>
+    <div class="download">
     <nav id="nav">
         <a href="{{ url_for('home') }}">Home</a>
     </nav>
-    <p>&nbsp;</p> 
-    <p></p>
+    <h2>Download</h2>
     <a href = "{{ url }}">
         <input type="submit" value="Download">
-    </a>
+</a>
+</div>
 </body>

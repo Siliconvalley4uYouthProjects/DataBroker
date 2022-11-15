@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<body>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+  * {box-sizing: border-box;}
+  
+  body {
+    margin: 0;
+  }
+    .ModifyExcel {
+            background-color: lightblue;
+            color: black;
+            border: 2px solid black;
+            margin: 20px;
+            padding: 20px;
+          }
+  
+  </style>
+   <div class="ModifyExcel">
+    <nav id="nav">
+        <a href="{{ url_for('home') }}">Home</a>
+    </nav>
+    <nav>
+      <a href="{{ url_for('modifyRowCol') }}">Edit Row/Column</a>
+    </nav>
+<div class="container">
+    <h2>Modify Excel File</h2>
+        <h4 class="modal-title">Choose Excel File</h4>
+          </div>
+            <form action = "" method = "POST" enctype="multipart/form-data">
+                <p><input type="text" name="excel_file"></p>
+                <h4>Sheet Name</h4>
+                <label for="sheet name"></label>
+                <input name="sheet_name">  
+                <h4>Column Name </h4>  
+                <label for="column name"></label>
+                <input type="text" id="columnname" name="col_name">  
+                <h4>Row Index </h4>  
+                <label for="row name"></label>
+                <input type="text" id="rowname" name="row_name">
+                <label for="new value"></label>
+                <h4>New Value: </h4>  
+                <input type="text" id="newvalue" name="new_value">
+                <button type = "submit">Submit form</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>

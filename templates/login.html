@@ -2,13 +2,37 @@
 <head>
     <title>Login</title>
 </head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+* {box-sizing: border-box;}
+
+body {
+  margin: 0;
+}
+  .logIn {
+          background-color: lightblue;
+          color: black;
+          border: 2px solid black;
+          margin: 20px;
+          padding: 20px;
+        }
+
+</style>
 <body>
+    <div class="logIn">
     <form action="" method="POST">
+        <h2>Data Brokers Web Application</h2>
+        <h3 class="text-center mt-4 mb-4">Enter Credentials</h3>
         Email: <input type="text" name="email"><Br>
+            <br>
         Password: <input type="text" name="password"><Br>
-        <input type="submit">
+            <br>
+        <input type="submit" value="Log in">
+        <br>
     </form>
     <nav id = "nav">
+        <br>
         <a href="{{ url_for('createAccount') }}">Create an Account</a>
     </nav>
+</div>
 </body>

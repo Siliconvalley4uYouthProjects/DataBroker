@@ -1,13 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <body>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+    * {box-sizing: border-box;}
+    
+    body {
+      margin: 0;
+    }
+      .delete {
+              background-color: lightblue;
+              color: black;
+              border: 2px solid black;
+              margin: 20px;
+              padding: 20px;
+            }
+    
+    </style>
+    <div class="delete">
     <nav id="nav">
         <a href="{{ url_for('home') }}">Home</a>
     </nav>
-        <h1>Delete File: </h1>
+        <h2>Delete File: </h2>
     <form method="POST" action="" enctype="multipart/form-data">
-        <select id ='selectvalue' name="delete"></select>
-        <button type="submit" id="submit_button"> Submit</button>
+<select id ='selectvalue' name="delete"></select>
+<br> 
+<br> 
+<button type="submit" id="submit_button"> Submit</button>
     </form>
 <script>
     var selectvalue = document.getElementById("selectvalue"), test = {{ name | tojson }};
@@ -20,5 +39,6 @@
         selectvalue.insertBefore(selection,selectvalue.lastChild); //This reads eah value into the dropdown based on the order in the "TEST" above.
     }
 </script>
+</div>
 </body>
 </html>
