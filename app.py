@@ -2,7 +2,6 @@ from pyrebase import pyrebase
 from firebase_admin import storage as admin_storage, credentials
 from openpyxl import load_workbook
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import requests.exceptions
 import pandas as pd #panda.excelfiles.parse
 import firebase_admin 
 from firebase_admin import auth
@@ -52,11 +51,6 @@ def login():
 
     return render_template('login.html')
 
-#Logout route
-@app.route('/logout', methods=['GET', 'POST'])
-def logout():
-    return render_template("logout.html")
-
 #Account creation route
 @app.route('/createAccount', methods=['GET', 'POST'])
 def createAccount():
@@ -75,7 +69,8 @@ def createAccount():
 @app.route('/home', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
-        return redirect(url_for('logout'))
+        session.pop('user')
+        return redirect(url_for('login'))
     return render_template('home.html')
 
 #upload route
@@ -88,27 +83,77 @@ def upload():
         return redirect(url_for('home'))
     return render_template('upload.html')
 
-#Modify excel route pandas
-@app.route('/modifyTest', methods=['GET', 'POST'])
-def modifyTest():
+#Modify excel route (add drop downs of column names)
+@app.route('/modify', methods=['GET', 'POST'])
+def modify():
     if request.method == 'POST':
-        #try:
-        path = "https://www.gs://data-brokers-f0705.appspot.com"
-        excelTest = request.form.get('excelTest')
-        url = storage.child(excelTest).get_url(None)
+        try:
+            excelItem = request.form.get('excel_file')
+            url = storage.child(excelItem).get_url(None)
+            excel = pd.read_excel(url)
+
+            sheet_name = request.form['sheet_name']
+            col_name = request.form['col_name']
+            row_num = int(request.form['row_name'])
+            new_val = request.form['new_value']
+
+            excel.loc[excel.index[row_num], col_name] = new_val
+
+            # Create a Pandas Excel writer using XlsxWriter as the engine.
+            writer = pd.ExcelWriter(excelItem, engine='xlsxwriter')
+
+            # Convert the dataframe to an XlsxWriter Excel object.
+            excel.to_excel(writer, sheet_name=sheet_name, index=False)
+
+            # Close the Pandas Excel writer and output the Excel file.
+            writer.close()
+
+            storage.child(excelItem).put(excelItem)
+            return render_template('modifyExcel.html')
+        except:
+            return render_template('modifyExcel.html')
+    return render_template("modifyExcel.html")
+
+#Modify rows and columns route
+@app.route('/modifyRowCol', methods=['GET', 'POST'])
+def modifyRowCol():
+    if request.method == 'POST':
+        excelItem = request.form.get('excel_file')
+        url = storage.child(excelItem).get_url(None)
         excel = pd.read_excel(url)
 
-        sheet_name = request.form['sheet_name']
-        col_name = request.form['col_name']
-        row_name =  int(request.form['row_name'])
-        new_val = request.form['new_value']
+        sheet_name = request.form['sheet_name']     
+        opt = request.form['modify_option']
 
+        if opt == "add_column":
+            col_name = request.form['option_name']
+            excel.insert(0,col_name, " ")
 
-        excel.loc[row_name, col_name] = new_val
+        elif opt == "delete_column":
+            col_name = request.form['option_name']
+            excel = excel.drop(labels=col_name, axis=1)
+        
+        #(Add loop to add all rows if the index is farther down)
+        elif opt == "add_row":
+            row_num = request.form['option_name']
+            shape = excel.shape
+            count = int(shape[1])
+            i = 0
+            list = []
 
+            while i < count:
+                list.append(" ")
+                i += 1
+            excel.loc[len(excel.index)] = list
+            print(excel)
+
+        #Delete row since last option
+        else:
+            row_num = request.form['option_name']
+            excel = excel.drop(labels=row_num, axis=0)
 
         # Create a Pandas Excel writer using XlsxWriter as the engine.
-        writer = pd.ExcelWriter(excelTest, engine='xlsxwriter')
+        writer = pd.ExcelWriter(excelItem, engine='xlsxwriter')
 
         # Convert the dataframe to an XlsxWriter Excel object.
         excel.to_excel(writer, sheet_name=sheet_name, index=False)
@@ -116,34 +161,10 @@ def modifyTest():
         # Close the Pandas Excel writer and output the Excel file.
         writer.close()
 
-        #writer = pd.ExcelWriter(url, engine='xlsxwriter')
-        #excel.to_excel(url, sheet_name='Sheet1')
+        storage.child(excelItem).put(excelItem)
 
-        storage.child(excelTest).put(excelTest)
-        return render_template('modifyTest.html')
-        #except:
-            #return redirect(url_for('home'))
-    return render_template("modifyTest.html")
-
-# Modify Excel openpyxl route
-@app.route('/modify_Excel', methods=['GET', 'POST'])
-def modify():
-    if request.method == 'POST':
-        request.form.get('excel_file')
-        excel = request.files['excel_file']
-        sheet_name = request.form['sheet_name']
-        col_name = request.form['col_name']
-        row_name = request.form['row_name']
-        new_val = request.form['new_value']
-
-        wb = load_workbook(excel)
-        ws = wb[sheet_name]
-        cell = col_name + row_name
-        ws[cell] = new_val
-        wb.save(excel.filename)
-        storage.child(excel.filename).put(excel)
-        return redirect(url_for('home'))
-    return render_template('modify_excel.html')
+        return render_template("modifyRowCol.html")
+    return render_template("modifyRowCol.html")
 
 #Retreive route
 @app.route('/retrieve', methods=['GET', 'POST'])
