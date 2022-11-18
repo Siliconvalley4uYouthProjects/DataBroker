@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<body>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+  * {box-sizing: border-box;}
+  
+  body {
+    margin: 0;
+  }
+    .ModifyExcel {
+            background-color: lightblue;
+            color: black;
+            border: 2px solid black;
+            margin: 20px;
+            padding: 20px;
+          }
+  
+  </style>
+   <div class="ModifyExcel">
+    <nav id="nav">
+        <a href="{{ url_for('home') }}">Home</a>
+    </nav>
+    <nav>
+      <a href="{{ url_for('modifyExcel') }}">Back</a>
+    </nav>
+<div class="container">
+    <h2>Modify Excel File</h2>
+            <form action = "" method = "POST" enctype="multipart/form-data">
+              <h4>{{ excelName }}</h4>
+              <h4>{{ sheetName }}</h4>  
+              <h4>Row index</h4>
+              <label for="sheet name"></label>
+              <input name="row_num">
+                <button type = "submit">Submit form</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>

@@ -21,39 +21,18 @@
         <a href="{{ url_for('home') }}">Home</a>
     </nav>
     <nav>
-      <a href="{{ url_for('addRow') }}">Add Row</a>
-    </nav>
-    <nav>
-      <a href="{{ url_for('deleteRow') }}">Delete Row</a>
-    </nav>
-    <nav>
-      <a href="{{ url_for('addColumn') }}">Add Column</a>
-    </nav>
-    <nav>
-      <a href="{{ url_for('deleteColumn') }}">Delete Column</a>
+      <a href="{{ url_for('modifyExcel') }}">Back</a>
     </nav>
 <div class="container">
     <h2>Modify Excel File</h2>
-        <h3 class="modal-title">Excel Book</h3>
-          </div>
             <form action = "" method = "POST" enctype="multipart/form-data">
-                <h4>{{ excelName }}</h4>
-                <h4>{{ sheetName }}</h4>
-                <h4>Column Name </h4>  
-                <select name="col_name" id="col_name">
-                  {% for item in columns %}
-                  <option value="{{ item }}" >{{ item }}</a>
-                  {% endfor %}
-                </select>
-                <h4>Row Index </h4>  
+              <h4>{{ excelName }}</h4>
+              <h4>{{ sheetName }}</h4>  
                 <select name="row_name" id="row_name">
                   {% for item in rows %}
                   <option value="{{ item }}" >{{ item }}</a>
                   {% endfor %}
                 </select>
-                <label for="new value"></label>
-                <h4>New Value: </h4>  
-                <input type="text" id="newvalue" name="new_value">
                 <button type = "submit">Submit form</button>
             </form>
           </div>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+    * {box-sizing: border-box;}
+    
+    body {
+      margin: 0;
+    }
+      .Retrieve {
+              background-color: lightblue;
+              color: black;
+              border: 2px solid black;
+              margin: 20px;
+              padding: 20px;
+            }
+    
+    </style>
+    <div class="Retrieve">
+    <nav id="nav">
+        <a href="{{ url_for('home') }}">Home</a>
+    </nav>
+        <h2>Choose Sheet: </h2>
+        <h4>{{ excelName }}</h4>
+    <form method="POST" action="" enctype="multipart/form-data">
+        <select name="sheet_name" id="sheets">
+            {% for item in sheets %}
+            <option value="{{ item }}" >{{ item }}</a>
+            {% endfor %}
+          </select>
+        <br>
+        <br>
+        <button type="submit" id="submit_button" >Get File</button>
+    </form>
+</body>
+</div>
+</html>
