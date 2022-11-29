@@ -1,6 +1,5 @@
 from pyrebase import pyrebase
 from firebase_admin import storage as admin_storage, credentials
-from openpyxl import load_workbook
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import pandas as pd #panda.excelfiles.parse
 import firebase_admin 
@@ -58,7 +57,7 @@ def createAccount():
         try:
             auth.create_user_with_email_and_password(email, password)
         except:
-            return 'User already exists'
+            return 'User already exists or password needs to be 6 characters'
         return redirect(url_for('login'))
     return render_template('createAccount.html')
 
@@ -90,7 +89,7 @@ def chooseExcel():
         words = name.split(".")
         ext = words[1]
 
-        if ext == "xlsx" or ext == "csv":
+        if ext == "xlsx":
             files.append(file.name)
 
     if request.method == 'POST':
@@ -109,9 +108,6 @@ def chooseExcel():
 @app.route('/chooseSheet', methods=['GET', 'POST'])
 def chooseSheet():
     url = storage.child(excelName).get_url(None)
-
-    xl = pd.ExcelFile(url)
-    sheets = xl.sheet_names
         
     if request.method == 'POST':
         global sheet_name
@@ -121,9 +117,6 @@ def chooseSheet():
 
         url = storage.child(excelName).get_url(None)
         excel = pd.read_excel(url, sheet_name = sheet_name)
-
-        xl = pd.ExcelFile(url)
-        sheets = xl.sheet_names
 
         columns = excel.columns.tolist()
         shape = excel.shape
@@ -150,7 +143,6 @@ def modifyExcel():
         new_val = request.form['new_value']
 
         excel.loc[excel.index[row_num], col_name] = new_val
-        print(excel)
 
         # Create a Pandas Excel writer using XlsxWriter as the engine.
         writer = pd.ExcelWriter(excelName, engine='xlsxwriter')
@@ -162,19 +154,15 @@ def modifyExcel():
         writer.close()
 
         storage.child(excelName).put(excelName)
-        return render_template('home.html')
+        return render_template("modifyExcel.html", excelName = excelName, columns=columns, sheets=sheets, rows=rows)
     return render_template("modifyExcel.html", excelName = excelName, columns=columns, sheets=sheets, rows=rows)
 
 @app.route('/addRow', methods=['GET', 'POST'])
 def addRow():
     url = storage.child(excelName).get_url(None)
     excel = pd.read_excel(url)   
-    print(excel)
     row_count = len(excel.index)
-    print(row_count)
     if request.method == 'POST':
-
-
         def Insert_row(row_number, df, row_value):
             start_upper = 0
             end_upper = row_number
@@ -191,9 +179,6 @@ def addRow():
 
         row_insert = int(request.form['row_num'])
         row_count = len(excel.index)
-        print(excel)
-        print(row_insert)
-        print(row_count)
 
         if row_count == 0:
             shape = excel.shape
@@ -232,9 +217,8 @@ def addRow():
                 list.append("Test")
                 i += 1
             excel = Insert_row(row_insert, excel, list)
-            print(excel)
 
-                    # Create a Pandas Excel writer using XlsxWriter as the engine.
+        # Create a Pandas Excel writer using XlsxWriter as the engine.
         writer = pd.ExcelWriter(excelName, engine='xlsxwriter')
 
         # Convert the dataframe to an XlsxWriter Excel object.
@@ -245,7 +229,7 @@ def addRow():
 
         storage.child(excelName).put(excelName)
 
-        return redirect(url_for("home"))
+        return redirect(url_for("chooseExcel"))
     return render_template("addRow.html", excelName = excelName, sheets=sheets, rows=rows)
 
 @app.route('/deleteRow', methods=['GET', 'POST'])
@@ -269,7 +253,7 @@ def deleteRow():
 
         storage.child(excelName).put(excelName)
 
-        return redirect(url_for("home"))
+        return redirect(url_for("chooseExcel"))
     return render_template("deleteRow.html", excelName = excelName, sheets=sheets, rows=rows)
 
 @app.route('/addColumn', methods=['GET', 'POST'])
@@ -280,8 +264,6 @@ def addColumn():
 
         col_name = request.form['col_name']
         excel.insert(0,col_name, " ")
-        print(excel.keys())
-        print(excel)
         
         # Create a Pandas Excel writer using XlsxWriter as the engine.
         writer = pd.ExcelWriter(excelName, engine='xlsxwriter')
@@ -293,7 +275,7 @@ def addColumn():
         writer.close()
 
         storage.child(excelName).put(excelName)
-        return redirect('home') 
+        return redirect('chooseExcel') 
     return render_template("addColumn.html", excelName = excelName, sheets=sheets)
 
 @app.route('/deleteColumn', methods=['GET', 'POST'])
@@ -304,95 +286,7 @@ def deleteColumn():
 
         col_name = request.form['column_name']
         excel = excel.drop(labels=col_name, axis=1)
-        # Create a Pandas Excel writer using XlsxWriter as the engine.
-        writer = pd.ExcelWriter(excelName, engine='xlsxwriter')
-
-        # Convert the dataframe to an XlsxWriter Excel object.
-        excel.to_excel(writer, sheet_name=sheet_name, index=False)
-
-        # Close the Pandas Excel writer and output the Excel file.
-        writer.close()
-
-        storage.child(excelName).put(excelName)
-        return redirect(url_for("home"))
-    return render_template("deleteColumn.html", excelName=excelName, sheet_name=sheet_name, columns=columns)
     
-@app.route('/addRowCol', methods=['GET', 'POST'])
-def addRowCol():
-    if request.method == 'POST':
-        url = storage.child(excelName).get_url(None)
-        excel = pd.read_excel(url)    
-
-        opt = request.form['modify_option']
-
-        if opt == "add_column":
-            col_name = request.form['option_name']
-            excel.insert(0,col_name, " ")
-            print(excel.keys())
-            print(excel)
-
-        elif opt == "delete_column":
-            col_name = request.form['option_name']
-            excel = excel.drop(labels=col_name, axis=1)
-            print(excel)
-        
-        elif opt == "add_row":
-            # Function to insert row in the dataframe
-            def Insert_row(row_number, df, row_value):
-                start_upper = 0
-                end_upper = row_number
-                start_lower = row_number
-                end_lower = df.shape[0]
-                upper_half = [*range(start_upper, end_upper, 1)]
-                lower_half = [*range(start_lower, end_lower, 1)]
-                lower_half = [x.__add__(1) for x in lower_half]
-                index_ = upper_half + lower_half
-                df.index = index_
-                df.loc[row_number] = row_value
-                df = df.sort_index()
-                return df
-
-            row_insert = int(request.form['option_name'])
-            row_count = len(excel.index)
-            print(row_insert)
-            print(row_count)
-            #Checks if the row position is after the last row
-            if row_insert >= row_count: 
-                while row_insert >= row_count:
-                    shape = excel.shape
-                    count = int(shape[0])
-                    i = 0
-                    list = []
-                    row_count += 1
-                    #fill row with empty list
-                    while i < count:
-                        list.append(" ")
-                        i += 1
-                    test = excel.loc[len(excel.index)]
-                    print(test)
-                    excel.loc[len(excel.index)] = list
-            #inserts row between existing rows
-            else:
-                shape = excel.shape
-                count = int(shape[1])
-                i = 0
-                list = []
-                row_count += 1
-                #fill row with empty list
-                while i < count:
-                    list.append("Test")
-                    i += 1
-                excel = Insert_row(row_insert, excel, list)
-                print(excel)
-                
-
-        #Delete row since last option
-        else:
-            row_num = int(request.form['option_name'])
-            excel = excel.drop(row_num)
-            print(excel)
-
-
         # Create a Pandas Excel writer using XlsxWriter as the engine.
         writer = pd.ExcelWriter(excelName, engine='xlsxwriter')
 
@@ -403,9 +297,8 @@ def addRowCol():
         writer.close()
 
         storage.child(excelName).put(excelName)
-
-        return render_template("addRowCol.html")
-    return render_template("addRowCol.html")
+        return redirect(url_for("chooseExcel"))
+    return render_template("deleteColumn.html", excelName=excelName, sheet_name=sheet_name, columns=columns)
 
 #Retreive route
 @app.route('/retrieve', methods=['GET', 'POST'])
