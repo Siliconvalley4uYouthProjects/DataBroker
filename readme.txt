@@ -37,7 +37,7 @@ storage
 
 Running the Project: 
 
-If you install all the aforementioned packages and python has not changed since the creation of the project,
+If you install all the aforementioned packages and python has no issues since the creation of the project,
 the application should run. Once the application starts, the command terminal should show that the application
 has launched correctly and a web portal should be visible. The line that says "Running on -" will have a link
 to the inital webpage of the application and it should display the login screen. From there all the application's
