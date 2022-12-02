@@ -1,5 +1,12 @@
 Project Title: Data Brokers Web Application
 
+Credentials:
+
+It is important to make a new storage as the credentials for the test application are
+listed in a public repository. All the credentials within the code are purely for testing 
+the project, and if there is any plan to use this in a real business, ensure that the 
+different safety features are put in place. 
+
 Project Description:
 
 This project involved creating a web application that connected to firebase storage
